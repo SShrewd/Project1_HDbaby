@@ -1,0 +1,12 @@
+# Giới hạn và các hạng mục chưa xác minh
+
+1. **Dependency audit:** lần kiểm tra hiện tại còn 3 advisory mức high trong chuỗi Prisma CLI 6.19.3 → @prisma/config → deepmerge-ts 7.1.5 (stack exhaustion với object graph đệ quy). Cấu hình Prisma trong dự án là file local tin cậy, API không nhận hoặc deep-merge cấu hình từ khách; chưa nâng major ORM để loại bỏ chuỗi phụ thuộc này. Đây vẫn là finding còn tồn tại, không công bố `npm audit` sạch. Minimatch đã được override lên 11.0.1; Sharp và Vitest đã nâng bản vá tương thích. Kiểm tra lại bằng `npm.cmd audit` trước khi nâng cấp hoặc triển khai.
+2. **Triển khai production:** chưa thực hiện deploy, TLS/reverse proxy, SMTP, lưu ảnh trên object storage, distributed rate limiting, kiểm thử tải hoặc sao lưu/khôi phục production. Server có guard tách dữ liệu/tài khoản demo khỏi production. Bản bàn giao tập trung chạy local theo đề tài.
+3. **Khôi phục mật khẩu:** thư được ghi vào hộp thư local `.runtime/mail`, không gửi email ra ngoài. Tin nhắn Admin có trường ghi chú phản hồi nội bộ; không gửi email. Newsletter có chức năng đăng ký/lưu email, chưa có hệ thống gửi chiến dịch.
+4. **Thanh toán/vận chuyển:** COD và chuyển khoản là mô phỏng theo yêu cầu. Không có cổng thanh toán thật, webhook ngân hàng hay API hãng vận chuyển. Trạng thái thanh toán mẫu chuyển PAID khi Admin hoàn tất đơn, không xác nhận tiền thật.
+5. **Hình và nội dung:** 150 sản phẩm sử dụng 8 bộ bao bì hư cấu, mỗi bộ có ảnh toàn cảnh và ảnh cận. 12 thương hiệu trong seed là mô phỏng; không phải cam kết phân phối hoặc nội dung dinh dưỡng chính thức.
+6. **Đo hiệu năng và thiết bị:** chưa đo Lighthouse/Core Web Vitals, chưa kiểm tra trình duyệt Safari/Firefox hoặc điện thoại vật lý. Playwright dùng Chromium và viewport desktop/mobile. Không công bố điểm Lighthouse khi chưa đo.
+7. **Môi trường Browser:** Browser tích hợp trong phiên làm việc trả về không khả dụng. Kiểm thử giao diện và screenshot sử dụng Playwright Chromium cục bộ; không coi đó là xác minh trình duyệt tích hợp.
+8. **Seed:** seed chạy lại giữ nguyên dữ liệu mẫu đủ bộ; không tự sửa dữ liệu người dùng hoặc khôi phục một seed bị ngắt giữa chừng. Khi seed bị ngắt, chọn database trống hoặc chủ động dùng db:reset trên database đồ án.
+
+Các giới hạn email/chiến dịch/thanh toán/vận chuyển thật là ranh giới của bản demo. Finding dependency và các hạng mục chưa đo/triển khai được ghi riêng để không đánh dấu PASS thiếu bằng chứng.

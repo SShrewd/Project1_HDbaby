@@ -1,0 +1,38 @@
+{
+  "name": "hdbaby",
+  "private": true,
+  "version": "1.0.0",
+  "workspaces": [
+    "frontend",
+    "backend"
+  ],
+  "scripts": {
+    "dev": "concurrently -k -n API,WEB \"npm run dev -w backend\" \"npm run dev -w frontend\"",
+    "build": "npm run build -w backend && npm run build -w frontend",
+    "preview": "concurrently -k -n API,WEB \"npm run start -w backend\" \"npm run preview -w frontend\"",
+    "format": "prettier --write frontend/src backend/src backend/prisma/seed.ts backend/tests tests scripts docs README.md",
+    "typecheck": "npm run typecheck --workspaces",
+    "lint": "eslint frontend/src backend/src backend/prisma backend/tests",
+    "test": "npm run test -w backend && npm run test -w frontend",
+    "test:e2e": "playwright test",
+    "db:generate": "npm run db:generate -w backend",
+    "db:migrate": "npm run db:migrate -w backend",
+    "db:seed": "npm run db:seed -w backend",
+    "db:enrich":"npm run db:enrich -w backend",
+    "db:reset": "npm run db:reset -w backend",
+    "db:local": "node scripts/local-mysql.mjs",
+    "db:check": "node scripts/check-data.mjs",
+    "setup": "node scripts/setup.mjs"
+  },
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "@playwright/test": "^1.56.0",
+    "concurrently": "^9.2.1",
+    "eslint": "^10.14.0",
+    "prettier": "^3.9.10",
+    "typescript-eslint": "^8.72.1"
+  },
+  "overrides": {
+    "minimatch": "11.0.1"
+  }
+}

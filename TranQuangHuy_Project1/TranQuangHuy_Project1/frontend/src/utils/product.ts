@@ -1,0 +1,1 @@
+export function ageLabel(age:string){const labels:Record<string,string>={'0-6':'0–6 tháng','6-12':'6–12 tháng','12-24':'1–2 tuổi','24-36':'2–3 tuổi','36+':'Từ 3 tuổi'};return labels[age]||`${age} tháng`;}

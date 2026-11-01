@@ -1,0 +1,318 @@
+generator client {
+  provider = "prisma-client-js"
+}
+datasource db {
+  provider = "mysql"
+  url = env("DATABASE_URL")
+}
+enum Role {
+  CUSTOMER
+  ADMIN
+}
+enum OrderStatus {
+  PENDING
+  CONFIRMED
+  SHIPPING
+  COMPLETED
+  CANCELLED
+}
+model User {
+  id Int @id @default(autoincrement())
+  email String @unique @db.VarChar(191)
+  name String
+  phone String @db.VarChar(30)
+  passwordHash String
+  role Role @default(CUSTOMER)
+  active Boolean @default(true)
+  createdAt DateTime @default(now())
+  addresses Address[]
+  sessions Session[]
+  resets PasswordReset[]
+  cart CartItem[]
+  wishlist Wishlist[]
+  orders Order[]
+  reviews Review[]
+  notifications Notification[]
+  @@map("users")
+}
+model Session {
+  id String @id @default(uuid())
+  userId Int
+  user User @relation(fields:[userId],references:[id],onDelete:Cascade)
+  refreshHash String @unique
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+  @@index([userId])
+  @@map("sessions")
+}
+model PasswordReset {
+  id Int @id @default(autoincrement())
+  userId Int
+  user User @relation(fields:[userId],references:[id],onDelete:Cascade)
+  tokenHash String @unique
+  expiresAt DateTime
+  used Boolean @default(false)
+  @@map("password_resets")
+}
+model Address {
+  id Int @id @default(autoincrement())
+  userId Int
+  user User @relation(fields:[userId],references:[id],onDelete:Cascade)
+  name String
+  phone String @db.VarChar(30)
+  city String
+  district String
+  detail String
+  isDefault Boolean @default(false)
+  @@index([userId])
+  @@map("user_addresses")
+}
+model Category {
+  id Int @id @default(autoincrement())
+  name String
+  slug String @unique @db.VarChar(191)
+  image String
+  active Boolean @default(true)
+  position Int @default(0)
+  products Product[]
+  @@map("categories")
+}
+model Brand {
+  id Int @id @default(autoincrement())
+  name String
+  slug String @unique @db.VarChar(191)
+  origin String
+  active Boolean @default(true)
+  position Int @default(0)
+  products Product[]
+  @@map("brands")
+}
+model Product {
+  id Int @id @default(autoincrement())
+  name String
+  slug String @unique @db.VarChar(191)
+  sku String @unique @db.VarChar(100)
+  categoryId Int
+  category Category @relation(fields:[categoryId],references:[id])
+  brandId Int
+  brand Brand @relation(fields:[brandId],references:[id])
+  age String @db.VarChar(50)
+  price Decimal @db.Decimal(12,0)
+  originalPrice Decimal? @db.Decimal(12,0)
+  stock Int @default(0)
+  active Boolean @default(true)
+  featured Boolean @default(false)
+  sold Int @default(0)
+  rating Float @default(0)
+  description String @db.Text
+  ingredients String @db.Text
+  nutrition String @db.Text
+  usage String @db.Text
+  storage String @db.Text
+  warning String @db.Text
+  details Json?
+  packaging String
+  origin String
+  createdAt DateTime @default(now())
+  images ProductImage[]
+  cart CartItem[]
+  wishlist Wishlist[]
+  orderItems OrderItem[]
+  reviews Review[]
+  inventory InventoryLog[]
+  @@index([categoryId,active])
+  @@index([brandId,active])
+  @@index([price])
+  @@index([age])
+  @@map("products")
+}
+model ProductImage {
+  id Int @id @default(autoincrement())
+  productId Int
+  product Product @relation(fields:[productId],references:[id],onDelete:Cascade)
+  url String
+  position Int @default(0)
+  @@index([productId])
+  @@map("product_images")
+}
+model CartItem {
+  id Int @id @default(autoincrement())
+  userId Int
+  user User @relation(fields:[userId],references:[id],onDelete:Cascade)
+  productId Int
+  product Product @relation(fields:[productId],references:[id])
+  quantity Int
+  selected Boolean @default(true)
+  priceAtAdd Decimal @db.Decimal(12,0)
+  @@unique([userId,productId])
+  @@map("carts")
+}
+model Wishlist {
+  id Int @id @default(autoincrement())
+  userId Int
+  user User @relation(fields:[userId],references:[id],onDelete:Cascade)
+  productId Int
+  product Product @relation(fields:[productId],references:[id])
+  @@unique([userId,productId])
+  @@map("wishlists")
+}
+model Voucher {
+  id Int @id @default(autoincrement())
+  code String @unique @db.VarChar(100)
+  type String @db.VarChar(20)
+  value Decimal @db.Decimal(12,0)
+  maxDiscount Decimal @db.Decimal(12,0)
+  minOrder Decimal @db.Decimal(12,0)
+  startsAt DateTime
+  expiresAt DateTime
+  limit Int @default(100)
+  perUser Int @default(1)
+  used Int @default(0)
+  active Boolean @default(true)
+  orders Order[]
+  @@map("vouchers")
+}
+model Order {
+  id Int @id @default(autoincrement())
+  code String @unique @db.VarChar(100)
+  userId Int
+  user User @relation(fields:[userId],references:[id])
+  idempotencyKey String @unique @db.VarChar(191)
+  requestHash String @db.VarChar(64)
+  status OrderStatus @default(PENDING)
+  subtotal Decimal @db.Decimal(12,0)
+  discount Decimal @db.Decimal(12,0)
+  shipping Decimal @db.Decimal(12,0)
+  total Decimal @db.Decimal(12,0)
+  voucherId Int?
+  voucher Voucher? @relation(fields:[voucherId],references:[id])
+  recipient String
+  phone String @db.VarChar(30)
+  city String
+  district String
+  address String
+  note String @db.Text
+  delivery String @db.VarChar(30)
+  payment String @db.VarChar(30)
+  paymentStatus String @default("UNPAID") @db.VarChar(30)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  items OrderItem[]
+  history OrderHistory[]
+  reviews Review[]
+  @@index([userId,createdAt])
+  @@index([status,createdAt])
+  @@map("orders")
+}
+model OrderItem {
+  id Int @id @default(autoincrement())
+  orderId Int
+  order Order @relation(fields:[orderId],references:[id],onDelete:Cascade)
+  productId Int
+  product Product @relation(fields:[productId],references:[id])
+  name String
+  sku String
+  image String
+  quantity Int
+  price Decimal @db.Decimal(12,0)
+  @@unique([orderId,productId])
+  @@map("order_items")
+}
+model OrderHistory {
+  id Int @id @default(autoincrement())
+  orderId Int
+  order Order @relation(fields:[orderId],references:[id],onDelete:Cascade)
+  status OrderStatus
+  note String @db.Text
+  createdAt DateTime @default(now())
+  @@index([orderId])
+  @@map("order_history")
+}
+model Review {
+  id Int @id @default(autoincrement())
+  userId Int
+  user User @relation(fields:[userId],references:[id])
+  productId Int
+  product Product @relation(fields:[productId],references:[id])
+  orderId Int
+  order Order @relation(fields:[orderId],references:[id])
+  rating Int
+  content String @db.Text
+  visible Boolean @default(true)
+  createdAt DateTime @default(now())
+  @@unique([userId,productId,orderId])
+  @@index([productId,visible])
+  @@map("reviews")
+}
+model InventoryLog {
+  id Int @id @default(autoincrement())
+  productId Int
+  product Product @relation(fields:[productId],references:[id])
+  change Int
+  reason String
+  actor String
+  createdAt DateTime @default(now())
+  @@index([productId,createdAt])
+  @@map("inventory_logs")
+}
+model Banner {
+  id Int @id @default(autoincrement())
+  title String
+  subtitle String @db.Text
+  image String
+  link String
+  active Boolean @default(true)
+  position Int @default(0)
+  @@map("banners")
+}
+model Article {
+  id Int @id @default(autoincrement())
+  title String
+  slug String @unique @db.VarChar(191)
+  excerpt String @db.Text
+  content String @db.LongText
+  image String
+  active Boolean @default(true)
+  createdAt DateTime @default(now())
+  @@map("articles")
+}
+model Faq {
+  id Int @id @default(autoincrement())
+  question String
+  answer String @db.Text
+  active Boolean @default(true)
+  position Int @default(0)
+  @@map("faqs")
+}
+model Setting {
+  key String @id @db.VarChar(100)
+  value String @db.Text
+  @@map("settings")
+}
+model Contact {
+  id Int @id @default(autoincrement())
+  name String
+  email String
+  message String @db.Text
+  reply String? @db.Text
+  resolved Boolean @default(false)
+  createdAt DateTime @default(now())
+  @@map("contacts")
+}
+model Newsletter {
+  id Int @id @default(autoincrement())
+  email String @unique @db.VarChar(191)
+  createdAt DateTime @default(now())
+  @@map("newsletters")
+}
+model Notification {
+  id Int @id @default(autoincrement())
+  userId Int
+  user User @relation(fields:[userId],references:[id],onDelete:Cascade)
+  title String
+  content String @db.Text
+  read Boolean @default(false)
+  createdAt DateTime @default(now())
+  @@index([userId,read])
+  @@map("notifications")
+}

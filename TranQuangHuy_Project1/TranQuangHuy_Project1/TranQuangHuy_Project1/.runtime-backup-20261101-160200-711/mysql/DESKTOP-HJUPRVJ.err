@@ -1,0 +1,3 @@
+2026-11-01T03:33:07.682456Z 0 [System] [MY-010116] [Server] C:\Program Files\MySQL\MySQL Server 8.0\bin\mysqld.exe (mysqld 8.0.44) starting as process 29636
+2026-11-01T03:33:07.724665Z 1 [System] [MY-013576] [InnoDB] InnoDB initialization has started.
+2026-11-01T03:33:08.342909Z 1 [System] [MY-013577] [InnoDB] InnoDB initialization has ended.
